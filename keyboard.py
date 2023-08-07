@@ -1,14 +1,17 @@
 import pygame
 import os
-
+# 게임 스크린 크기
 SCREEN_WIDTH = 800
 SCCREEN_HEIGH = 600
-
+#색 정의
 GRAY = (200, 200, 200)
-
+#pygame 초기화
 pygame.init()
+#윈도우 제목
 pygame.display.set_caption("Keyboard")
+#스크린 정의
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCCREEN_HEIGH))
+#게임 화면 업데이트 속도
 clock = pygame.time.Clock()
 
 current_path = os.path.dirname(__file__)
