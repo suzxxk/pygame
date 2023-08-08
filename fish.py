@@ -1,5 +1,6 @@
 import pygame
 import os
+import random
 
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 700
@@ -50,6 +51,121 @@ class Fish():
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
+class Pipe():
+    def __init__(self):
+        self.lpipe = pygame.image.load(os.path.join(assets_path,"pipe01.png"))
+        self.lpipe_rect = self.lpipe.get_rect()
+        self.lpipe_width = self.lpipe.get_rect().width
+        self.lpipe_height = self.lpipe.get_rect().height
+
+        spipes = ["pipe02.png", "pipe03.png", "pipe04.png", "pipe05.png", "pipe06.png"]
+        self.spipe = pygame.image.load(os.path.join(assets_path, random.choice(spipes)))
+        self.spipe_rect = self.spipe.get_rect()
+        self.spipe_rect = self.spipe.get_rect().width
+        self.spipe_rect = self.spipe.get_rect().height
+
+        self.set_pos()
+
+    # 파이프의 위치 설정
+    def set_pos(self):
+        self.ranbom_pipe = random.randint(0, 1)
+        # 긴 파이프 위에
+        if self.ranbom_pipe == 1:
+            self.lpipe.rect.x = SCREEN_WIDTH
+            self.lpipe.rect.y = -2
+            self.spipe.rect.x = SCREEN_WIDTH
+            self.spipe.rect.x = SCREEN_HEIGHT - self.spipe_height + 2
+
+        # 긴 파이프 아래에
+        else:
+            self.lpipe.rect.x = SCREEN_WIDTH
+            self.lpipe.rect.y = SCREEN_HEIGHT - self.lpipe_height + 2
+            self.lpipe.rect.x = SCREEN_WIDTH
+            self.lpipe.rect.y = -2
+    def update(self):
+        self.lpipe.x -= 4
+        self.spipe.x -= 4
+
+    def out_of_screen(self):
+        if  self.spipe_rect.x + self.spipe_width <= 0:
+            return True
+        return False
+    
+    def check_crash(self, fish):
+        if self.lpipe_rect.colliderect(fish.rect):
+            return True
+        elif self.spipe_rect.colliderect(fish.rect):
+            return True
+        else:
+            return False
+        
+    def draw(self, screen):
+        screen.blit(self.lpipe, self.lpipe_rect)
+        screen.blit(self.spipe, self.spipe_rect)
+
+class Game():
+    def __init__(self):
+        pygame.mixer.music.load(os.path.join(assets_path, "bgm.mp3"))
+        self.font = pygame.font.SysFont("맑은 고딕", 40, True, False)
+        self.fish = Fish()
+        self.pipes = []
+        self.pipes.append(Pipe())
+        self.pipe_pos = 0
+        self.score = 0
+        self.menu_on = True
+
+    def process_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
+            if self.menu_on == True:
+                if event.key == pygame.K_SPACE:
+                    pygame.mixer.music.play(-1)
+                    self.score = 0
+                    self.pipes = []
+                    self.pipes.append(Pipe())
+            else:
+                if event.type == pygame.QUIT:
+                    if event.key == pygame.K_SPACE:
+                        self.fish.swim()
+        return True
+    
+    def run_logic(self):
+        for pipe in self.pipes:
+            if pipe.spipe_rext.x == self.pipe__pos:
+                self.pipes.append(Pipe())
+                self.score += 1
+            if pipe.out_of_screen():
+                del self.pipes[0]
+                self.pipe_pos = random.randrange(200, 400, 4)
+            if pipe.check_crash(self.fish):
+                pygame.mixer_music.stop()
+                self.menu_on = True
+
+        def draw_taxt(self, screen, text, font, x, y, main_color):
+            text_obj = font.render(text, True, main_color)
+            text_rect = text_obj.get_rect()
+            text_rect.center = x, y
+            screen.blit(text_obj, text_rect)
+
+        def display_menu(self, screen):
+            center_x = SCREEN_WIDTH // 2
+            center_y = SCREEN_WIDTH // 2
+            rect = (center_x - 220, center_y - 50, 440, 100)
+            pygame.draw.rect(screen,GROUND, rect)
+            pygame.draw.rect(screen, DARK_GROUND, rect, 4)
+
+        def display_frame(self, screen):
+            screen.fill(SEA)
+            pygame.draw.rect(screen, GROUND, (0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, 50))
+            pygame.draw.rect(screen, DARK_GROUND, (0, SCREEN_HEIGHT - 50, SCREEN_WIDTH, SCREEN_HEIGHT -50), 4)
+            self.fish.update()
+            self.fish.draw(screen)
+            for pipe in self.pipes:
+                pipe.update()
+                pipe.draw(screen)
+            self.draw_text(screen, "점수: "+set(self.score), self.font, 100, 50, WHITE)
+
 
 
 def main():
@@ -59,17 +175,20 @@ def main():
 
     clock = pygame.time.Clock()
 
+    game =  Game()
+
     running = True
-    fish = Fish()
+
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        running = game.process_events()
+        if game.menu_on:
+            game.display_menu(screen)
+        else:
+            game.run_logic(screen)
+            game.dispiay_frame(screen)
 
         screen.fill(SEA)
-        fish = Fish()
-        fish.update()
-        fish.draw(screen)
+
         pygame.display.flip()
         clock.tick(60)
     pygame.quit()
